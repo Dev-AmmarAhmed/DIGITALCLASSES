@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>M.M ISLAMIC ENGLISH SCHOOL - LOGIN</title>
+
+  <!-- PWA MANIFEST & APP ICON INITIALIZATION -->
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="M.M ISLAMIC ENGLISH SCHOOL">
+
+  <!-- DYNAMIC APP ICON LINK -->
+  <link id="dynamicAppIcon" rel="icon" type="image/jpeg" href="https://raw.githubusercontent.com/Dev-AmmarAhmed/mm-islamic-student-dashboard/6ffc7a916bc2902c4baea4a123634fbe732647b1/book-floating-cartoon-vector-icon-illustration-education-object-icon-isolated-flat-vector_138676-13661.jpg">
+  <link id="appleAppIcon" rel="apple-touch-icon" href="https://raw.githubusercontent.com/Dev-AmmarAhmed/mm-islamic-student-dashboard/6ffc7a916bc2902c4baea4a123634fbe732647b1/book-floating-cartoon-vector-icon-illustration-education-object-icon-isolated-flat-vector_138676-13661.jpg">
+
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0b132b 0%, #1c2541 100%);
+      --app-bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --text-color: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --primary-btn-bg: linear-gradient(135deg, #0288d1 0%, #01579b 100%);
+    }
+
+    body.dark-mode {
+      --app-bg: #0b0f19;
+      --card-bg: #131c2e;
+      --text-color: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border-color: #1e293b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      transition: background-color 0.25s, color 0.25s, border-color 0.25s;
+    }
+
+    html, body {
+      background: var(--bg-gradient);
+      height: 100%;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .login-container {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 28px 24px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-color);
+      text-align: center;
+      position: relative;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .school-logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 12px;
+      border: 3px solid #0288d1;
+      box-shadow: 0 4px 14px rgba(2, 136, 209, 0.3);
+    }
+
+    .login-title {
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--text-color);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .login-subtitle {
+      font-size: 11px;
+      font-weight: 700;
+      color: #0288d1;
+      margin-bottom: 20px;
+      letter-spacing: 0.3px;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 14px;
+    }
+
+    label {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 700;
+      outline: none;
+      background: var(--app-bg);
+      color: var(--text-color);
+    }
+
+    input:focus {
+      border-color: #0288d1;
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary-btn-bg);
+      color: white !important;
+      border: none;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 10px;
+      box-shadow: 0 4px 14px rgba(2, 136, 209, 0.35);
+      transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-login:active {
+      transform: scale(0.97);
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #ffffff;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .error-msg {
+      color: #ef4444;
+      font-size: 11px;
+      font-weight: 800;
+      margin-top: 12px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <img src="https://raw.githubusercontent.com/Dev-AmmarAhmed/mm-islamic-student-dashboard/6ffc7a916bc2902c4baea4a123634fbe732647b1/book-floating-cartoon-vector-icon-illustration-education-object-icon-isolated-flat-vector_138676-13661.jpg" class="school-logo" alt="Logo">
+    
+    <div class="login-title">M.M ISLAMIC ENGLISH SCHOOL</div>
+    <div class="login-subtitle">SCHOOL MANAGEMENT SYSTEM</div>
+
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label for="usernameInput">Username / Admission No.</label>
+        <input type="text" id="usernameInput" placeholder="Enter Username / ID" required autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label for="passwordInput">Password</label>
+        <input type="password" id="passwordInput" placeholder="Enter Password" required>
+      </div>
+
+      <button type="submit" id="loginSubmitBtn" class="btn-login">
+        <span>🔐 LOGIN TO DASHBOARD</span>
+      </button>
+
+      <div id="loginError" class="error-msg">Invalid Username or Password!</div>
+    </form>
+  </div>
+
+  <!-- FIREBASE ENGINE & AUTH ROUTING LOGIC -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBHpbgoGs7HFQ3-1tBn9BpGT4YYDaKkZB8",
+      authDomain: "mm-islamic-erp.firebaseapp.com",
+      databaseURL: "https://mm-islamic-erp-default-rtdb.firebaseio.com",
+      projectId: "mm-islamic-erp",
+      storageBucket: "mm-islamic-erp.firebasestorage.app",
+      messagingSenderId: "547338314533",
+      appId: "1:547338314533:web:3973c2b36ef8b3b01170cc"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // AUTO-REDIRECT IF ALREADY LOGGED IN
+    (function checkExistingSession() {
+      const role = localStorage.getItem("loggedRole");
+      if (role === "admin") {
+        window.location.replace("admin.html#admindashboard");
+      } else if (role === "teacher") {
+        window.location.replace("teacher.html");
+      } else if (role === "student") {
+        window.location.replace("student.html");
+      }
+    })();
+
+    window.handleLogin = async function(e) {
+      e.preventDefault();
+      const usernameInput = document.getElementById("usernameInput").value.trim();
+      const passwordInput = document.getElementById("passwordInput").value.trim();
+      const errorDiv = document.getElementById("loginError");
+      const submitBtn = document.getElementById("loginSubmitBtn");
+
+      errorDiv.style.display = "none";
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span class="spinner"></span> Authenticating...`;
+
+      try {
+        // default credentials start
+        if (usernameInput === "admin" && passwordInput === "123") {
+          localStorage.setItem("loggedRole", "admin");
+          localStorage.setItem("userKey", "admin");
+          window.location.replace("admin.html#admindashboard");
+          return;
+        }
+        // default credentials end
+
+        const dbSnap = await get(child(ref(db), "users/" + usernameInput));
+        if (dbSnap.exists()) {
+          const userData = dbSnap.val();
+          if (userData.password === passwordInput) {
+            localStorage.setItem("loggedRole", userData.role);
+            localStorage.setItem("userKey", usernameInput);
+
+            if (userData.assignedClass) {
+              localStorage.setItem("assignedClass", userData.assignedClass);
+            }
+
+            if (userData.role === "admin") {
+              window.location.replace("admin.html#admindashboard");
+            } else if (userData.role === "teacher") {
+              window.location.replace("teacher.html");
+            } else {
+              window.location.replace("student.html");
+            }
+            return;
+          }
+        }
+
+        errorDiv.style.display = "block";
+      } catch (err) {
+        console.error(err);
+        errorDiv.innerText = "Connection error. Please try again.";
+        errorDiv.style.display = "block";
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>🔐 LOGIN TO DASHBOARD</span>`;
+      }
+    };
+  </script>
+</body>
+</html>
