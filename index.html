@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Digital Classes - Login</title>
+
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Digital Classes">
+
+<link id="dynamicAppIcon" rel="icon" type="image/png" href="https://raw.githubusercontent.com/Dev-AmmarAhmed/DIGITAL-CLASSES/a4a25f244fa56db83e669d00a5b3023296ab67a6/icon.png">
+<link id="appleAppIcon" rel="apple-touch-icon" href="https://raw.githubusercontent.com/Dev-AmmarAhmed/DIGITAL-CLASSES/a4a25f244fa56db83e669d00a5b3023296ab67a6/icon.png">
+<link rel="manifest" href="manifest.json">
+
+<style>
+:root {
+  --bg-gradient: linear-gradient(135deg, #0b132b 0%, #1c2541 100%);
+  --card-bg: #ffffff;
+  --text-color: #1e293b;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --primary: linear-gradient(135deg, #0288d1 0%, #01579b 100%);
+  --accent: #fbbf24;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg-gradient);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+}
+
+/* Animated background orbs */
+.bg-orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  pointer-events: none;
+  animation: float 20s ease-in-out infinite;
+}
+.orb-1 {
+  width: 300px; height: 300px;
+  background: #0288d1;
+  top: -100px; left: -100px;
+  animation-delay: 0s;
+}
+.orb-2 {
+  width: 400px; height: 400px;
+  background: #7c3aed;
+  bottom: -150px; right: -100px;
+  animation-delay: -5s;
+}
+.orb-3 {
+  width: 250px; height: 250px;
+  background: #fbbf24;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  animation-delay: -10s;
+  opacity: 0.15;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(40px, -30px) scale(1.1); }
+  66% { transform: translate(-30px, 40px) scale(0.95); }
+}
+
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  z-index: 10;
+  animation: slideUp 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-logo-box {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.login-logo {
+  width: 90px;
+  height: 90px;
+  border-radius: 24px;
+  object-fit: cover;
+  box-shadow: 0 15px 40px rgba(2, 136, 209, 0.4);
+  border: 3px solid rgba(255, 255, 255, 0.15);
+  background: #0f172a;
+}
+
+.login-title {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 900;
+  margin-top: 16px;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 20px rgba(2, 136, 209, 0.5);
+}
+
+.login-subtitle {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  margin-top: 6px;
+  text-transform: uppercase;
+}
+
+.login-box {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  padding: 30px 24px;
+  border-radius: 24px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.login-box label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin-bottom: -6px;
+  padding-left: 4px;
+  text-transform: uppercase;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  outline: none;
+  background: #f8fafc;
+  color: var(--text-color);
+  transition: all 0.2s ease;
+  user-select: text;
+}
+
+.login-box input:focus {
+  border-color: #0288d1;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(2, 136, 209, 0.12);
+}
+
+.btn-login {
+  width: 100%;
+  padding: 15px;
+  background: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  cursor: pointer;
+  margin-top: 8px;
+  box-shadow: 0 8px 24px rgba(2, 136, 209, 0.4);
+  transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-login:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 4px 12px rgba(2, 136, 209, 0.5);
+}
+
+.btn-login:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.login-error {
+  display: none;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+  padding: 10px;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 12px;
+  animation: shake 0.4s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 20px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Ripple */
+.ripple-wave {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(0);
+  animation: rippleAnim 0.6s linear;
+  pointer-events: none;
+}
+
+@keyframes rippleAnim {
+  to { transform: scale(4); opacity: 0; }
+}
+
+/* Loading overlay */
+.loading-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loading-overlay.active { display: flex; }
+
+.loading-spinner-big {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #0288d1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-text {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+</style>
+</head>
+<body>
+
+<!-- Animated background orbs -->
+<div class="bg-orb orb-1"></div>
+<div class="bg-orb orb-2"></div>
+<div class="bg-orb orb-3"></div>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loading-overlay">
+  <div class="loading-spinner-big"></div>
+  <div class="loading-text" id="loadingText">Signing you in...</div>
+</div>
+
+<!-- Login Container -->
+<div class="login-container">
+  <div class="login-logo-box">
+    <img src="https://raw.githubusercontent.com/Dev-AmmarAhmed/DIGITAL-CLASSES/a4a25f244fa56db83e669d00a5b3023296ab67a6/icon.png" 
+         alt="Digital Classes" 
+         class="login-logo">
+    <h1 class="login-title">DIGITAL CLASSES</h1>
+    <p class="login-subtitle">School Management System</p>
+  </div>
+
+  <div class="login-box">
+    <label for="loginUsername">USER ID / USERNAME</label>
+    <input type="text" id="loginUsername" placeholder="Enter your username" autocomplete="username" autofocus>
+
+    <label for="loginPassword">PASSWORD</label>
+    <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
+
+    <p id="loginError" class="login-error"></p>
+
+    <button id="loginBtn" class="btn-login">LOGIN</button>
+  </div>
+
+  <div class="login-footer">
+    © Digital Classes • Powered by Firebase
+  </div>
+</div>
+
+<script type="module">
+import { db, ref, get, child, ICON_PORTAL, ICON_BOOK, ICON_TEACHER, ICON_ANALYTICS } from "./firebase-config.js";
+
+/* ====================================================================
+   RIPPLE EFFECT
+   ==================================================================== */
+document.addEventListener("click", function(e) {
+  const target = e.target.closest(".btn-login");
+  if (!target) return;
+  const rect = target.getBoundingClientRect();
+  const circle = document.createElement("span");
+  const diameter = Math.max(rect.width, rect.height);
+  const radius = diameter / 2;
+  circle.style.width = circle.style.height = `${diameter}px`;
+  circle.style.left = `${e.clientX - rect.left - radius}px`;
+  circle.style.top = `${e.clientY - rect.top - radius}px`;
+  circle.classList.add("ripple-wave");
+  target.appendChild(circle);
+  setTimeout(() => circle.remove(), 600);
+});
+
+/* ====================================================================
+   AUTO-REDIRECT IF ALREADY LOGGED IN
+   ==================================================================== */
+(function checkExistingSession() {
+  const savedUser = localStorage.getItem("loggedUser");
+  const savedRole = localStorage.getItem("loggedRole");
+  if (savedUser && savedRole) {
+    showLoading("Restoring your session...");
+    setTimeout(() => redirectToDashboard(savedRole), 800);
+  }
+})();
+
+/* ====================================================================
+   LOGIN HANDLER
+   ==================================================================== */
+const loginBtn = document.getElementById("loginBtn");
+const usernameInput = document.getElementById("loginUsername");
+const passwordInput = document.getElementById("loginPassword");
+const errorEl = document.getElementById("loginError");
+const loadingOverlay = document.getElementById("loadingOverlay");
+const loadingText = document.getElementById("loadingText");
+
+loginBtn.addEventListener("click", performLogin);
+passwordInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") performLogin();
+});
+usernameInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") passwordInput.focus();
+});
+
+async function performLogin() {
+  const u = usernameInput.value.trim();
+  const p = passwordInput.value.trim();
+
+  errorEl.style.display = "none";
+
+  if (!u || !p) {
+    showError("Please enter both Username and Password.");
+    return;
+  }
+
+  loginBtn.disabled = true;
+  loginBtn.innerHTML = `<span class="spinner"></span>Verifying...`;
+
+  try {
+    const usersSnap = await get(child(ref(db), "users"));
+    if (!usersSnap.exists()) {
+      showError("No users found. Please contact admin.");
+      resetBtn();
+      return;
+    }
+
+    const usersData = usersSnap.val();
+    const uData = usersData[u];
+
+    if (!uData || uData.password !== p) {
+      showError("Invalid credentials. Please try again.");
+      resetBtn();
+      return;
+    }
+
+    // Save session
+    localStorage.setItem("loggedUser", u);
+    localStorage.setItem("loggedPass", p);
+    localStorage.setItem("loggedRole", uData.role);
+    if (uData.assignedClass) localStorage.setItem("assignedClass", uData.assignedClass);
+    if (uData.admn) localStorage.setItem("studentAdmn", uData.admn);
+
+    // Show loading
+    showLoading("Welcome! Redirecting...");
+
+    // Request notification permission AFTER login
+    setTimeout(async () => {
+      await requestNotificationPermission(uData.role);
+    }, 500);
+
+    // Redirect based on role
+    setTimeout(() => {
+      redirectToDashboard(uData.role);
+    }, 1200);
+
+  } catch (err) {
+    console.error("Login error:", err);
+    showError("Network error. Please check your connection.");
+    resetBtn();
+  }
+}
+
+function resetBtn() {
+  loginBtn.disabled = false;
+  loginBtn.innerHTML = "LOGIN";
+}
+
+function showError(msg) {
+  errorEl.innerText = msg;
+  errorEl.style.display = "block";
+}
+
+function showLoading(msg) {
+  loadingText.innerText = msg || "Loading...";
+  loadingOverlay.classList.add("active");
+}
+
+function redirectToDashboard(role) {
+  if (role === "admin") window.location.href = "./admin.html";
+  else if (role === "teacher") window.location.href = "./teacher.html";
+  else if (role === "student") window.location.href = "./student.html";
+  else window.location.href = "./index.html";
+}
+
+/* ====================================================================
+   NOTIFICATION PERMISSION
+   ==================================================================== */
+async function requestNotificationPermission(role) {
+  if (!("Notification" in window)) {
+    console.warn("Notifications not supported in this browser.");
+    return;
+  }
+
+  try {
+    if (Notification.permission === "default") {
+      const permission = await Notification.requestPermission();
+      console.log("Notification permission:", permission);
+    }
+
+    // Register service worker
+    if ("serviceWorker" in navigator) {
+      const registration = await navigator.serviceWorker.register("./sw.js", { scope: "./" });
+      console.log("✅ Service Worker registered:", registration.scope);
+    }
+  } catch (err) {
+    console.warn("Notification setup error:", err);
+  }
+}
+
+/* ====================================================================
+   DYNAMIC APP ICON
+   ==================================================================== */
+const dynamicIcon = document.getElementById("dynamicAppIcon");
+const appleIcon = document.getElementById("appleAppIcon");
+if (dynamicIcon) dynamicIcon.href = ICON_PORTAL;
+if (appleIcon) appleIcon.href = ICON_PORTAL;
+
+console.log("🔐 Digital Classes Login Loaded");
+</script>
+
+</body>
+</html>
