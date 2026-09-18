@@ -1,1 +1,188 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>M.M ISLAMIC ENGLISH SCHOOL - TEACHER DASHBOARD</title>
+
+  <meta name="theme-color" content="#4c1d95">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link id="dynamicAppIcon" rel="icon" type="image/jpeg" href="https://raw.githubusercontent.com/Dev-AmmarAhmed/mm-islamic-student-dashboard/6ffc7a916bc2902c4baea4a123634fbe732647b1/book-floating-cartoon-vector-icon-illustration-education-object-icon-isolated-flat-vector_138676-13661.jpg">
+
+  <style>
+    :root {
+      --app-bg: #f4f6f9; --card-bg: #ffffff; --text-color: #1e293b;
+      --text-muted: #64748b; --border-color: #e2e8f0;
+      --header-bg: linear-gradient(135deg, #4c1d95 0%, #1e1b4b 100%);
+      --nav-bg: #ffffff; --input-bg: #ffffff; --table-header-bg: #1e1b4b;
+      --primary-btn-bg: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
+    }
+    body.dark-mode {
+      --app-bg: #090d16; --card-bg: #111827; --text-color: #f8fafc;
+      --text-muted: #cbd5e1; --border-color: #1e293b; --nav-bg: #111827;
+      --input-bg: #1f2937; --table-header-bg: #0f172a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; user-select: none; }
+    html, body { background: var(--app-bg); color: var(--text-color); height: 100%; width: 100%; overflow: hidden; }
+    body { display: flex; flex-direction: column; }
+    
+    .app-header { background: var(--header-bg); color: white; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+    .header-title-box { text-align: center; flex: 1; }
+    .header-title { font-size: 15px; font-weight: 800; color: white !important; }
+    .header-subtitle { font-size: 11px; color: #fbbf24 !important; font-weight: 700; margin-top: 2px; }
+    .class-badge { background: rgba(0,0,0,0.25); padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; display: inline-block; color: white !important; }
+    .icon-btn { font-size: 18px; cursor: pointer; padding: 6px 10px; color: white !important; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; }
+
+    .main-content { flex: 1; overflow-y: auto; padding-bottom: 90px; }
+    .tab-section { display: none; padding: 16px; }
+    .tab-section.active { display: block; }
+    .card { background: var(--card-bg); padding: 20px; border-radius: 20px; margin-bottom: 16px; border: 1px solid var(--border-color); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); }
+    .card-title { font-size: 15px; font-weight: 800; margin-bottom: 14px; border-bottom: 2px solid var(--border-color); padding-bottom: 6px; }
+
+    label { font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-top: 10px; margin-bottom: 4px; }
+    input[type="text"], input[type="number"], select { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; font-size: 13px; outline: none; background: var(--input-bg); color: var(--text-color); }
+    
+    .btn-primary { width: 100%; padding: 13px; background: var(--primary-btn-bg); color: white !important; border: none; border-radius: 25px; font-size: 14px; font-weight: 800; cursor: pointer; margin-top: 10px; }
+    .btn-green { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important; }
+    .btn-purple { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important; }
+    .btn-orange { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important; }
+
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); display: flex; justify-content: space-between; padding: 8px 4px; z-index: 100; height: 64px; border-top-left-radius: 24px; border-top-right-radius: 24px; border-top: 1px solid var(--border-color); }
+    .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 10px; font-weight: 800; cursor: pointer; flex: 1; text-align: center; }
+    .nav-item.active { color: #7c3aed !important; }
+
+    .table-container { overflow-x: auto; margin-top: 8px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); }
+    table { border-collapse: collapse; font-size: 11px; text-align: center; min-width: 100%; }
+    table th, table td { border: 1px solid var(--border-color); padding: 10px 4px; }
+    table th { background-color: var(--table-header-bg); color: white !important; }
+
+    .menu-dropdown { position: absolute; top: 55px; right: 14px; background: var(--card-bg); border-radius: 18px; width: 230px; z-index: 600; border: 1px solid var(--border-color); display: none; }
+    .menu-dropdown.active { display: block; }
+    .menu-item { padding: 12px 16px; font-size: 13px; font-weight: 700; border-bottom: 1px solid var(--border-color); cursor: pointer; }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
+    .modal-overlay.active { display: flex; }
+    .modal-content { background: var(--card-bg); border-radius: 22px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; padding: 16px; }
+    .modal-header { background: var(--header-bg); color: white; padding: 12px; border-radius: 12px; font-weight: 800; display: flex; justify-content: space-between; }
+  </style>
+</head>
+<body class="teacher-mode">
+
+  <header class="app-header">
+    <button id="hamburgerBtn" class="icon-btn">☰</button>
+    <div class="header-title-box">
+      <div class="header-title">M.M ISLAMIC ENGLISH SCHOOL</div>
+      <div class="header-subtitle">TEACHERS DASHBOARD PRO</div>
+      <div id="classBadgeContainer" class="class-badge">Class: 1</div>
+    </div>
+    <button id="threeDotBtn" class="icon-btn">⋮</button>
+
+    <div id="menuDropdown" class="menu-dropdown">
+      <div class="menu-item" onclick="openModal('addSubjectModal')">➕ Add Subject</div>
+      <div class="menu-item" onclick="openModal('addStudyMaterialModal')">📁 Add Study Material</div>
+      <div class="menu-item" onclick="openModal('uploadHomeworkModal')">📚 Upload Homework</div>
+      <div class="menu-item" id="logoutBtn" style="color:red;">🚪 Logout</div>
+    </div>
+  </header>
+
+  <main id="mainContainer" class="main-content">
+    
+    <!-- TEACHER HOME -->
+    <section id="teacherTabHome" class="tab-section active">
+      <div class="card">
+        <div class="card-title">🏫 Teacher Portal</div>
+        <h2 id="tWelcomeTeacherName" style="font-size: 18px; color: var(--text-color);">Teacher Name</h2>
+        <p style="font-size:13px; font-weight:700;">Assigned Class: <b id="tWelcomeClassText" style="color:#7c3aed;">Class 1</b></p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🏆 Teacherboard Standings</div>
+        <div id="teacherboardTableCardsContainer">Loading Teacherboard...</div>
+      </div>
+    </section>
+
+    <!-- TEACHER ATTENDANCE -->
+    <section id="teacherTabAttend" class="tab-section">
+      <div class="card">
+        <div class="card-title">📅 Today's Class Attendance</div>
+        <div class="table-container">
+          <table>
+            <thead><tr><th style="text-align:left; padding-left:10px;">Student Name</th><th>Status (Present)</th></tr></thead>
+            <tbody id="todayAttendanceTableBody"></tbody>
+          </table>
+        </div>
+        <button id="saveTodayAttendanceBtn" class="btn-primary btn-green">💾 Save Attendance</button>
+      </div>
+    </section>
+
+    <!-- TEACHER TESTS -->
+    <section id="teacherTabTest" class="tab-section">
+      <div class="card">
+        <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>📝 Interactive Online Tests</span>
+          <button class="btn-primary btn-green" style="width:auto; padding:6px 12px; font-size:11px; margin-top:0;" onclick="openModal('createOnlineTestModal')">➕ Add Test</button>
+        </div>
+        <div id="tActiveOnlineTestsContainer">Loading tests...</div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('teacherTabHome', this)"><div style="font-size:18px;">🏠</div>Home</div>
+    <div class="nav-item" onclick="switchTab('teacherTabAttend', this)"><div style="font-size:18px;">📅</div>Attend</div>
+    <div class="nav-item" onclick="switchTab('teacherTabTest', this)"><div style="font-size:18px;">📋</div>Test</div>
+  </nav>
+
+  <!-- MODAL CREATE TEST -->
+  <div id="createOnlineTestModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header"><span>📝 Create Online Test</span><span style="cursor:pointer;" onclick="closeModal('createOnlineTestModal')">✕</span></div>
+      <label>Test Name *:</label><input type="text" id="cTestName" placeholder="e.g. Science Quiz">
+      <label>No. of Questions *:</label><input type="number" id="cTestNumQuestions" placeholder="e.g. 5">
+      <button id="continueTestBuilderBtn" class="btn-primary btn-purple">Continue ➔</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { db, ref, set, get, child, update } from "../firebase-config.js";
+
+    // Clean URL Setup
+    if (window.location.pathname.endsWith("teacher.html")) {
+      window.history.replaceState(null, "", "/teacherdashboard");
+    }
+
+    // Role Verification
+    const role = localStorage.getItem("loggedRole");
+    const assignedClass = localStorage.getItem("assignedClass") || "1";
+    
+    if (role !== "teacher") {
+      window.location.href = "/loginpage";
+    }
+
+    document.getElementById("classBadgeContainer").innerText = `Class: ${assignedClass}`;
+    document.getElementById("tWelcomeClassText").innerText = `Class ${assignedClass}`;
+
+    window.switchTab = function(tabId, el) {
+      document.querySelectorAll(".tab-section").forEach(t => t.classList.remove("active"));
+      document.getElementById(tabId).classList.add("active");
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+      if(el) el.classList.add("active");
+    };
+
+    window.openModal = function(id) { document.getElementById(id).classList.add("active"); };
+    window.closeModal = function(id) { document.getElementById(id).classList.remove("active"); };
+
+    document.getElementById("threeDotBtn").addEventListener("click", () => {
+      document.getElementById("menuDropdown").classList.toggle("active");
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "/loginpage";
+    });
+  </script>
+</body>
+</html>
