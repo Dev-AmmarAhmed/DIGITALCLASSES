@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firebase Test</title>
+<style>
+body { font-family: Arial; padding: 20px; background: #f0f0f0; }
+.box { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.ok { color: green; font-weight: bold; }
+.err { color: red; font-weight: bold; }
+.info { color: blue; }
+pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; font-size: 11px; }
+</style>
+</head>
+<body>
+<h2>Firebase Connection Test</h2>
+<div id="output"></div>
+
+<script type="module">
+const out = document.getElementById("output");
+function log(msg, cls="info") {
+  out.innerHTML += `<div class="box ${cls}">${msg}</div>`;
+}
+
+log("1. Starting test...");
+
+try {
+  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js");
+  const { getDatabase, ref, get, child } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js");
+  
+  log("2. Firebase SDK loaded OK", "ok");
+  
+  const firebaseConfig = {
+    apiKey: "AIzaSyDSdTvqbCn-UMi2cUiyNPQN3UbKfqsfNoI",
+    authDomain: "digital-classes-app-14235.firebaseapp.com",
+    databaseURL: "https://digital-classes-app-14235-default-rtdb.firebaseio.com",
+    projectId: "digital-classes-app-14235",
+    storageBucket: "digital-classes-app-14235.firebasestorage.app",
+    messagingSenderId: "889883419588",
+    appId: "1:889883419588:web:0ae24d6da84740f127ba91"
+  };
+  
+  const app = initializeApp(firebaseConfig);
+  log("3. Firebase initialized OK", "ok");
+  
+  const db = getDatabase(app);
+  log("4. Database connected OK", "ok");
+  
+  log("5. Fetching users from database...");
+  const snap = await get(child(ref(db), "users"));
+  
+  if (snap.exists()) {
+    log("6. ✅ DATA FOUND in /users", "ok");
+    log("<b>Users found:</b>");
+    const users = snap.val();
+    let html = "<pre>" + JSON.stringify(users, null, 2) + "</pre>";
+    log(html);
+  } else {
+    log("6. ❌ /users node is EMPTY or doesn't exist", "err");
+    log("Please create users in Firebase Console → Realtime Database → Data");
+  }
+  
+} catch (err) {
+  log("❌ ERROR: " + err.message, "err");
+  log("Full error: <pre>" + err.stack + "</pre>", "err");
+}
+</script>
+</body>
+</html>
