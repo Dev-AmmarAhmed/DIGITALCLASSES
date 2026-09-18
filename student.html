@@ -1,1 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>M.M ISLAMIC ENGLISH SCHOOL - STUDENT DASHBOARD</title>
+
+  <meta name="theme-color" content="#0369a1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link id="dynamicAppIcon" rel="icon" type="image/jpeg" href="https://raw.githubusercontent.com/Dev-AmmarAhmed/mm-islamic-student-dashboard/6ffc7a916bc2902c4baea4a123634fbe732647b1/book-floating-cartoon-vector-icon-illustration-education-object-icon-isolated-flat-vector_138676-13661.jpg">
+
+  <style>
+    :root {
+      --app-bg: #f4f6f9; --card-bg: rgba(255, 255, 255, 0.45); --text-color: #1e293b;
+      --text-muted: #64748b; --border-color: rgba(2, 136, 209, 0.3);
+      --header-bg: linear-gradient(135deg, #0369a1 0%, #0c4a6e 100%);
+      --nav-bg: #ffffff; --input-bg: #ffffff;
+      --primary-btn-bg: linear-gradient(135deg, #0288d1 0%, #01579b 100%);
+    }
+    body.dark-mode {
+      --app-bg: #0b0f19; --card-bg: rgba(15, 23, 42, 0.65); --text-color: #f1f5f9;
+      --text-muted: #94a3b8; --border-color: rgba(56, 189, 248, 0.35); --nav-bg: #131c2e;
+      --input-bg: #1a2338;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; user-select: none; }
+    html, body { background: var(--app-bg); color: var(--text-color); height: 100%; width: 100%; overflow: hidden; }
+    body { display: flex; flex-direction: column; }
+    
+    .app-header { background: var(--header-bg); color: white; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; }
+    .header-title-box { text-align: center; flex: 1; }
+    .header-title { font-size: 15px; font-weight: 800; color: white !important; }
+    .header-subtitle { font-size: 11px; color: #fbbf24 !important; font-weight: 700; margin-top: 2px; }
+
+    .star-counter-badge {
+      background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.4);
+      padding: 3px 12px; border-radius: 16px; font-size: 12px; font-weight: 800; color: #fbbf24 !important;
+      display: inline-flex; align-items: center; gap: 6px; cursor: pointer; margin-top: 4px;
+    }
+    .icon-btn { font-size: 18px; cursor: pointer; padding: 6px 10px; color: white !important; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; }
+
+    .main-content { flex: 1; overflow-y: auto; padding-bottom: 90px; }
+    .tab-section { display: none; padding: 16px; }
+    .tab-section.active { display: block; }
+
+    /* HIGH GLOSS NEON GLASSMORPHISM */
+    .card {
+      background: var(--card-bg) !important;
+      backdrop-filter: blur(20px) saturate(200%) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(200%) !important;
+      border: 1.5px solid var(--border-color) !important;
+      box-shadow: 0 8px 32px 0 rgba(2, 136, 209, 0.15) !important;
+      padding: 20px; border-radius: 20px; margin-bottom: 16px;
+    }
+    .card-title { font-size: 15px; font-weight: 800; margin-bottom: 14px; border-bottom: 2px solid var(--border-color); padding-bottom: 6px; }
+
+    label { font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-top: 10px; margin-bottom: 4px; }
+    select { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; font-size: 13px; outline: none; background: var(--input-bg); color: var(--text-color); }
+
+    .btn-primary { width: 100%; padding: 13px; background: var(--primary-btn-bg); color: white !important; border: none; border-radius: 25px; font-size: 14px; font-weight: 800; cursor: pointer; margin-top: 10px; }
+    .btn-orange { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important; }
+    .btn-green { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important; }
+
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); display: flex; justify-content: space-between; padding: 8px 4px; z-index: 100; height: 64px; border-top-left-radius: 24px; border-top-right-radius: 24px; border-top: 1px solid var(--border-color); }
+    .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 10px; font-weight: 800; cursor: pointer; flex: 1; text-align: center; }
+    .nav-item.active { color: #0288d1 !important; }
+
+    .menu-dropdown { position: absolute; top: 55px; right: 14px; background: #ffffff; border-radius: 18px; width: 230px; z-index: 600; border: 1px solid #e2e8f0; display: none; }
+    .menu-dropdown.active { display: block; }
+    .menu-item { padding: 12px 16px; font-size: 13px; font-weight: 700; border-bottom: 1px solid #e2e8f0; cursor: pointer; color: #1e293b; }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
+    .modal-overlay.active { display: flex; }
+    .modal-content { background: var(--card-bg); border-radius: 22px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; padding: 16px; }
+  </style>
+</head>
+<body class="student-mode">
+
+  <header class="app-header">
+    <button id="hamburgerBtn" class="icon-btn">☰</button>
+    <div class="header-title-box">
+      <div class="header-title">M.M ISLAMIC ENGLISH SCHOOL</div>
+      <div class="header-subtitle">STUDENT DASHBOARD PRO</div>
+      <div id="studentStarsContainer" class="star-counter-badge">
+        <span id="studentStarIcon">⭐</span>
+        <span id="studentStarText">0 Stars</span>
+      </div>
+    </div>
+    <button id="threeDotBtn" class="icon-btn">⋮</button>
+
+    <div id="menuDropdown" class="menu-dropdown">
+      <div class="menu-item" onclick="openModal('studentProfileDrawerModal')">👤 My Profile & Fees Card</div>
+      <div class="menu-item" onclick="openModal('studentUpdateModal')">✏️ Update Profile Info</div>
+      <div class="menu-item" id="logoutBtn" style="color:red;">🚪 Logout</div>
+    </div>
+  </header>
+
+  <main id="mainContainer" class="main-content">
+    
+    <!-- STUDENT HOME -->
+    <section id="studentTabHome" class="tab-section active">
+      <div class="card" style="text-align:center; padding:24px 16px;">
+        <img id="sHomeAvatar" src="https://via.placeholder.com/150" style="width:90px; height:90px; border-radius:50%; object-fit:cover; border:3px solid #0288d1; margin-bottom:10px;">
+        <h2 id="sHomeName" style="font-size:18px; font-weight:900; color:#0288d1;">Student Name</h2>
+        <div style="font-size:13px; font-weight:800; color:#7c3aed; margin-top:6px;" id="sHomeRankText">Class Rank: #-</div>
+
+        <div style="margin-top:14px; padding:14px; border-radius:18px; background:rgba(217, 119, 6, 0.1); border:1px solid rgba(245, 158, 11, 0.3);">
+          <h3 style="font-size:15px; font-weight:900; color:#d97706;">🎁 Daily Login Bonus</h3>
+          <button id="sClaimDailyPointsBtn" class="btn-primary btn-orange" style="margin-top:8px;">🎁 Claim Today's Points</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STUDENT STUDY -->
+    <section id="studentTabStudy" class="tab-section">
+      <div class="card">
+        <div class="card-title">Class Study Materials</div>
+        <div id="sStudyMatContainer">Loading materials...</div>
+      </div>
+    </section>
+
+    <!-- STUDENT TEST -->
+    <section id="studentTabTest" class="tab-section">
+      <div class="card">
+        <div class="card-title">📝 Available Online Tests</div>
+        <div id="sDueOnlineTestsContainer">Loading due tests...</div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('studentTabHome', this)"><div style="font-size:18px;">🏠</div>Home</div>
+    <div class="nav-item" onclick="switchTab('studentTabStudy', this)"><div style="font-size:18px;">📖</div>Study</div>
+    <div class="nav-item" onclick="switchTab('studentTabTest', this)"><div style="font-size:18px;">📋</div>Test</div>
+  </nav>
+
+  <script type="module">
+    import { db, ref, get, child } from "../firebase-config.js";
+
+    // Route Masking Clean URL Check
+    if (window.location.pathname.endsWith("student.html")) {
+      window.history.replaceState(null, "", "/studentboard");
+    }
+
+    // Role Protection
+    const role = localStorage.getItem("loggedRole");
+    const currentStudentAdmn = localStorage.getItem("studentAdmn");
+
+    if (role !== "student" || !currentStudentAdmn) {
+      window.location.href = "/loginpage";
+    }
+
+    window.switchTab = function(tabId, el) {
+      document.querySelectorAll(".tab-section").forEach(t => t.classList.remove("active"));
+      document.getElementById(tabId).classList.add("active");
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+      if(el) el.classList.add("active");
+    };
+
+    window.openModal = function(id) { document.getElementById(id).classList.add("active"); };
+    window.closeModal = function(id) { document.getElementById(id).classList.remove("active"); };
+
+    document.getElementById("threeDotBtn").addEventListener("click", () => {
+      document.getElementById("menuDropdown").classList.toggle("active");
+    });
+
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "/loginpage";
+    });
+
+    async function loadStudentData() {
+      const snap = await get(child(ref(db), `students/${currentStudentAdmn}`));
+      if(snap.exists()) {
+        const student = snap.val();
+        document.getElementById("sHomeName").innerText = student.name;
+        if(student.photo) document.getElementById("sHomeAvatar").src = student.photo;
+        const pts = student.points || 0;
+        document.getElementById("studentStarText").innerText = `${Math.floor(pts / 10)} Stars`;
+      }
+    }
+
+    loadStudentData();
+  </script>
+</body>
+</html>
 
