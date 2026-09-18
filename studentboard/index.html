@@ -86,7 +86,6 @@
     select { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; font-size: 13px; outline: none; background: #ffffff; color: var(--text-color); }
 
     .btn-primary { width: 100%; padding: 13px; background: var(--primary-btn-bg); color: white; border: none; border-radius: 25px; font-size: 14px; font-weight: 800; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 14px rgba(2, 136, 209, 0.3); }
-    .btn-green { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important; }
     .btn-orange { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important; }
     .btn-blue { background: linear-gradient(135deg, #0288d1 0%, #01579b 100%) !important; }
 
@@ -126,7 +125,7 @@
       <span id="closeDrawerBtn" style="cursor:pointer;">✕</span>
     </div>
     <div class="drawer-body">
-      <div class="drawer-item" onclick="alert('Contact class teacher to update profile details.')">✏️ Update Profile Info</div>
+      <div class="drawer-item" onclick="alert('Contact class teacher to update profile details.')">✏️ Profile Info</div>
     </div>
   </div>
 
@@ -139,7 +138,6 @@
         <img id="sHomeAvatar" src="https://via.placeholder.com/150" style="width:85px; height:85px; border-radius:50%; object-fit:cover; border:3px solid #0288d1; margin-bottom:8px;">
         <h2 id="sHomeName" style="font-size:18px; font-weight:900; color:#0288d1;">Student Name</h2>
         <span id="sHomeClassBadge" style="background:#0288d1; color:white; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:700;">Class -</span>
-        <div style="font-size:13px; font-weight:800; color:#7c3aed; margin-top:6px;" id="sHomeRankText">Class Rank: #-</div>
 
         <!-- DAILY REWARD BOX -->
         <div style="background: linear-gradient(135deg, rgba(217, 119, 6, 0.08), rgba(245, 158, 11, 0.12)); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 16px; padding: 14px; margin-top: 14px;">
@@ -169,20 +167,12 @@
       </div>
     </section>
 
-    <!-- STUDY TAB -->
-    <section id="studentTabStudy" class="tab-section">
-      <div class="card">
-        <div class="card-title">Class Study Materials & Homework</div>
-        <div id="sStudyMatContainer">Loading materials...</div>
-      </div>
-    </section>
-
     <!-- PERFORMANCE TAB -->
     <section id="studentTabPerform" class="tab-section">
       <div class="card" style="text-align:center; background:var(--header-bg); color:white;">
-        <div style="font-size:13px; font-weight:800; opacity:0.9;">My Performance Rank</div>
-        <h1 id="sPerformRankBig" style="font-size:36px; font-weight:900; margin:6px 0; color:white;">#-</h1>
-        <div id="sPerformTotalPtsChip" style="background:#fbbf24; color:#0f172a; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:800; display:inline-block;">Total Points: 0</div>
+        <div style="font-size:13px; font-weight:800; opacity:0.9;">My Performance Points</div>
+        <h1 id="sPerformRankBig" style="font-size:36px; font-weight:900; margin:6px 0; color:white;">0 PTS</h1>
+        <div id="sPerformTotalPtsChip" style="background:#fbbf24; color:#0f172a; padding:4px 10px; border-radius:12px; font-size:11px; font-weight:800; display:inline-block;">Total Stars: 0 ⭐</div>
       </div>
     </section>
 
@@ -208,24 +198,29 @@
   <nav class="bottom-nav">
     <div class="nav-item active" onclick="switchTab('studentTabHome', this)"><div style="font-size:18px;">🏠</div>Home</div>
     <div class="nav-item" onclick="switchTab('studentTabAttend', this)"><div style="font-size:18px;">📅</div>Attend</div>
-    <div class="nav-item" onclick="switchTab('studentTabStudy', this)"><div style="font-size:18px;">📖</div>Study</div>
     <div class="nav-item" onclick="switchTab('studentTabPerform', this)"><div style="font-size:18px;">⭐</div>Perform</div>
     <div class="nav-item" onclick="switchTab('studentTabTest', this)"><div style="font-size:18px;">📋</div>Test</div>
   </nav>
 
-  <!-- FIREBASE ENGINE LOGIC -->
+  <!-- DYNAMIC MODULE LOGIC -->
   <script type="module">
-    import { db, ref, get, child, update, set } from '../firebase-config.js';
+    const getBaseUrl = () => {
+      const pathSegments = window.location.pathname.split('/').filter(p => p.length > 0);
+      return (pathSegments.length > 0 && pathSegments[0] === 'testing') ? '/testing/' : '/';
+    };
 
-    // Auth & Student Key Verification
+    const baseUrl = getBaseUrl();
+    const configPath = `${baseUrl}firebase-config.js`;
+
+    const { db, ref, get, child, update } = await import(configPath);
+
     const role = localStorage.getItem("loggedRole");
     const studentAdmn = localStorage.getItem("studentAdmn") || localStorage.getItem("loggedUser");
 
     if (role !== "student" || !studentAdmn) {
-      window.location.href = "../loginpage/";
+      window.location.href = `${baseUrl}loginpage/`;
     }
 
-    // UI Tab Navigation
     window.switchTab = function(tabId, el) {
       document.querySelectorAll(".tab-section").forEach(t => t.classList.remove("active"));
       document.getElementById(tabId).classList.add("active");
@@ -233,7 +228,6 @@
       if(el) el.classList.add("active");
     };
 
-    // Drawer Controls
     document.getElementById("hamburgerBtn").onclick = () => {
       document.getElementById("leftDrawer").classList.add("active");
       document.getElementById("drawerOverlay").classList.add("active");
@@ -250,10 +244,9 @@
 
     document.getElementById("logoutBtn").onclick = () => {
       localStorage.clear();
-      window.location.href = "../loginpage/";
+      window.location.href = `${baseUrl}loginpage/`;
     };
 
-    // Load Student Profile Data
     async function refreshStudentDashboard() {
       const snap = await get(child(ref(db), `students/${studentAdmn}`));
       if(snap.exists()) {
@@ -265,14 +258,12 @@
         const pts = student.points || 0;
         const stars = Math.floor(pts / 10);
         document.getElementById("studentStarText").innerText = `${stars} Stars`;
-        document.getElementById("sPerformTotalPtsChip").innerText = `Total Points: ${pts} (${stars} ⭐)`;
-
-        loadStudyMaterials(student.class);
+        document.getElementById("sPerformRankBig").innerText = `${pts} PTS`;
+        document.getElementById("sPerformTotalPtsChip").innerText = `Total Stars: ${stars} ⭐`;
       }
     }
     refreshStudentDashboard();
 
-    // Claim Daily Points
     document.getElementById("sClaimDailyPointsBtn").onclick = async () => {
       const today = new Date();
       const todayKey = `${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}`;
@@ -293,7 +284,7 @@
         updates[`daily_claims/${studentAdmn}/${todayKey}`] = true;
 
         await update(ref(db), updates);
-        alert("🎉 Congratulations! +50 Points added to your profile.");
+        alert("🎉 +50 Points added to your profile!");
         
         document.getElementById("sClaimDailyPointsBtn").style.display = "none";
         document.getElementById("sDailyClaimedBadge").style.display = "block";
@@ -301,28 +292,6 @@
       }
     };
 
-    // Load Materials
-    async function loadStudyMaterials(assignedClass) {
-      const container = document.getElementById("sStudyMatContainer");
-      const snap = await get(child(ref(db), `study_material/${assignedClass}`));
-      container.innerHTML = "";
-
-      if(snap.exists()) {
-        const mats = snap.val();
-        Object.values(mats).forEach(m => {
-          container.innerHTML += `
-            <div style="padding:10px; border-bottom:1px solid rgba(0,0,0,0.1); display:flex; justify-content:space-between; align-items:center;">
-              <div><b>${m.title}</b><br><small>${m.date || ''}</small></div>
-              ${m.file ? `<a href="${m.file}" download style="color:#0288d1; font-weight:800; text-decoration:none;">Download</a>` : ''}
-            </div>
-          `;
-        });
-      } else {
-        container.innerHTML = "No study materials available.";
-      }
-    }
-
-    // Load Test Scores
     document.getElementById("sViewTestScoresBtn").onclick = async () => {
       const snap = await get(child(ref(db), `tests/${studentAdmn}`));
       const tbody = document.getElementById("sTestScoresTableBody");
