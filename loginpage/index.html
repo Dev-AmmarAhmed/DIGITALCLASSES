@@ -41,6 +41,9 @@
       border-radius: 50%; border-top-color: #ffffff; animation: spin 0.8s linear infinite; display: inline-block;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    
+    /* Hide reCAPTCHA badge if needed */
+    .grecaptcha-badge { visibility: hidden; }
   </style>
 </head>
 <body>
@@ -59,8 +62,8 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
 
-    // Firebase Config Embedded Direct (No external config dependency to fail)
     const firebaseConfig = {
       apiKey: "AIzaSyBHpbgoGs7HFQ3-1tBn9BpGT4YYDaKkZB8",
       authDomain: "mm-islamic-erp.firebaseapp.com",
@@ -72,6 +75,17 @@
     };
 
     const app = initializeApp(firebaseConfig);
+
+    // Initialize Firebase App Check with your Site Key
+    try {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider('6LefZbUtAAAAADOa8KBfn1qywMly7Ky2-UlX6zxW'),
+        isTokenAutoRefreshEnabled: true
+      });
+    } catch (e) {
+      console.warn("App Check initialization error:", e);
+    }
+
     const db = getDatabase(app);
 
     const loginBtn = document.getElementById("loginBtn");
@@ -118,7 +132,7 @@
       } catch (err) {
         console.error("Login Error:", err);
         errorEl.style.display = "block";
-        errorEl.innerText = "Error: " + (err.message || "Failed to connect to Database");
+        errorEl.innerText = "Connection Error: " + (err.message || "Failed to connect to Database");
       } finally {
         loginBtn.disabled = false;
         loginBtn.innerHTML = "PORTAL LOGIN";
