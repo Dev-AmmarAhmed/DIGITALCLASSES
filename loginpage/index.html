@@ -116,19 +116,27 @@
       <h2>M.M ISLAMIC ENGLISH SCHOOL</h2>
       <h4>PORTAL LOGIN</h4>
     </div>
-    <input type="text" id="loginUsername" placeholder="User ID / Username">
-    <input type="password" id="loginPassword" placeholder="Password">
+    <input type="text" id="loginUsername" placeholder="User ID / Username" autocomplete="off">
+    <input type="password" id="loginPassword" placeholder="Password" autocomplete="off">
     <button id="loginBtn" class="btn-primary">PORTAL LOGIN</button>
-    <p id="loginError" style="color:red; font-size:12px; display:none;"></p>
+    <p id="loginError" style="color:red; font-size:12px; display:none; line-height:1.4;"></p>
   </div>
 
   <script type="module">
-    // Root level firebase-config.js file import
-    import { db, ref, get, child } from '../firebase-config.js';
+    // Repository subfolder base URL path dynamic detection
+    const getBaseUrl = () => {
+      const pathSegments = window.location.pathname.split('/').filter(p => p.length > 0);
+      if (pathSegments.length > 0 && pathSegments[0] === 'testing') {
+        return '/testing/';
+      }
+      return '/';
+    };
 
-    // Service Worker Register
+    const baseUrl = getBaseUrl();
+
+    // Register Service Worker from base path
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('../sw.js').catch(err => console.log('SW registration failed:', err));
+      navigator.serviceWorker.register(`${baseUrl}sw.js`).catch(err => console.log('SW registration failed:', err));
     }
 
     const loginBtn = document.getElementById("loginBtn");
@@ -150,33 +158,37 @@
       errorEl.style.display = "none";
 
       try {
+        // Dynamic import based on repository base URL
+        const firebaseConfigPath = `${baseUrl}firebase-config.js`;
+        const { db, ref, get, child } = await import(firebaseConfigPath);
+
         const snap = await get(child(ref(db), "users"));
         const usersData = snap.exists() ? snap.val() : {};
         const uData = usersData[u];
 
-        if (uData && uData.password === p) {
+        if (uData && String(uData.password).trim() === p) {
           localStorage.setItem("loggedUser", u);
           localStorage.setItem("loggedPass", p);
           localStorage.setItem("loggedRole", uData.role);
           if (uData.assignedClass) localStorage.setItem("assignedClass", uData.assignedClass);
           if (uData.admn) localStorage.setItem("studentAdmn", uData.admn);
 
-          // Folder-based Clean Redirects
+          // Repository compatible relative redirecting
           if (uData.role === "admin") {
-            window.location.href = "../admindashboard/";
+            window.location.href = `${baseUrl}admindashboard/`;
           } else if (uData.role === "teacher") {
-            window.location.href = "../teacherdashboard/";
+            window.location.href = `${baseUrl}teacherdashboard/`;
           } else if (uData.role === "student") {
-            window.location.href = "../studentboard/";
+            window.location.href = `${baseUrl}studentboard/`;
           }
         } else {
           errorEl.style.display = "block";
           errorEl.innerText = "Invalid credentials. Please try again.";
         }
       } catch (err) {
-        console.error("Login Error:", err);
+        console.error("Login Error Details:", err);
         errorEl.style.display = "block";
-        errorEl.innerText = "Connection error. Please check internet.";
+        errorEl.innerText = "Connection Error: " + (err.message || "Failed to load config");
       } finally {
         loginBtn.disabled = false;
         loginBtn.innerHTML = "PORTAL LOGIN";
