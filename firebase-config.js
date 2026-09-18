@@ -1,27 +1,12 @@
 /* ====================================================================
-   DIGITAL CLASSES - FIREBASE CONFIGURATION & INITIALIZATION
+   DIGITAL CLASSES - FIREBASE CONFIGURATION
    ==================================================================== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app-check.js";
 import { 
   getDatabase, 
-  ref, 
-  onValue, 
-  set, 
-  update, 
-  remove, 
-  child, 
-  get,
-  push,
-  query,
-  orderByChild,
-  limitToLast
+  ref, onValue, set, update, remove, child, get,
+  push, query, orderByChild, limitToLast
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-import { 
-  getMessaging, 
-  getToken, 
-  onMessage 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDSdTvqbCn-UMi2cUiyNPQN3UbKfqsfNoI",
@@ -35,6 +20,22 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+// App Check DISABLED for testing phase
+console.log("⚠️ App Check disabled for testing");
+
+const db = getDatabase(app);
+
+const ICON_PORTAL = `https://raw.githubusercontent.com/Dev-AmmarAhmed/DIGITAL-CLASSES/a4a25f244fa56db83e669d00a5b3023296ab67a6/icon.png`;
+const ICON_BOOK = ICON_PORTAL;
+const ICON_TEACHER = ICON_PORTAL;
+const ICON_ANALYTICS = ICON_PORTAL;
+
+export {
+  app, db, ref, onValue, set, update, remove, child, get, push,
+  query, orderByChild, limitToLast,
+  ICON_PORTAL, ICON_BOOK, ICON_TEACHER, ICON_ANALYTICS
+};const app = initializeApp(firebaseConfig);
 
 // App Check Safe Initialization
 try {
