@@ -84,13 +84,12 @@
     .card-title { font-size: 15px; font-weight: 800; color: var(--text-color); margin-bottom: 14px; border-bottom: 2px solid var(--border-color); padding-bottom: 6px; }
 
     label { font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-top: 10px; margin-bottom: 4px; }
-    input[type="text"], input[type="password"], input[type="number"], input[type="file"], select { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; font-size: 13px; outline: none; background: var(--input-bg); color: var(--text-color); }
+    input[type="text"], input[type="password"], input[type="number"], select { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; font-size: 13px; outline: none; background: var(--input-bg); color: var(--text-color); }
 
     .btn-primary { width: 100%; padding: 13px; background: var(--primary-btn-bg); color: white; border: none; border-radius: 25px; font-size: 14px; font-weight: 800; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3); }
     .btn-green { background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important; }
     .btn-purple { background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%) !important; }
     .btn-orange { background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%) !important; }
-    .btn-blue { background: linear-gradient(135deg, #0288d1 0%, #01579b 100%) !important; }
 
     .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--nav-bg); display: flex; justify-content: space-between; padding: 8px 4px; z-index: 100; height: 64px; border-top: 1px solid var(--border-color); }
     .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-muted); font-size: 10px; font-weight: 800; cursor: pointer; flex: 1; text-align: center; }
@@ -123,7 +122,6 @@
     <button id="threeDotBtn" class="icon-btn">⋮</button>
 
     <div id="menuDropdown" class="menu-dropdown">
-      <div class="menu-item" onclick="openModal('addSubjectModal')">➕ Add Subject</div>
       <div class="menu-item" onclick="openModal('registerStudentModal')">👤 Register Student</div>
       <div class="menu-item logout" id="logoutBtn">🚪 Logout</div>
     </div>
@@ -137,8 +135,6 @@
     </div>
     <div class="drawer-body">
       <div class="drawer-item" onclick="openModal('registerStudentModal')">👤 Register Student</div>
-      <div class="drawer-item" onclick="openModal('uploadHomeworkModal')">📚 Upload Homework</div>
-      <div class="drawer-item" onclick="openModal('addStudyMaterialModal')">📁 Add Study Material</div>
     </div>
   </div>
 
@@ -149,15 +145,8 @@
     <section id="teacherTabHome" class="tab-section active">
       <div class="card">
         <div class="card-title">🏫 Teacher Portal</div>
-        <h2 id="tWelcomeTeacherName" style="font-size: 19px; font-weight: 800; margin-bottom: 4px;">Teacher Name</h2>
-        <p style="font-size:13px; font-weight:700;">Assigned Class: <b id="tWelcomeClassText" style="color:#7c3aed;">Class 1</b></p>
-      </div>
-
-      <!-- DAILY REWARD -->
-      <div class="card" style="text-align: center; background: linear-gradient(135deg, rgba(217, 119, 6, 0.08) 0%, rgba(245, 158, 11, 0.12) 100%);">
-        <div style="font-size:11px; font-weight:800; color:#d97706;">🎁 DAILY REWARD POINTS</div>
-        <h3 style="font-size:16px; font-weight:900; margin:4px 0;">+50 Points Today</h3>
-        <button id="tClaimDailyPointsBtn" class="btn-primary btn-orange">🎁 Claim Today's Points</button>
+        <h2 id="tWelcomeTeacherName" style="font-size: 19px; font-weight: 800; margin-bottom: 4px;">Teacher</h2>
+        <p style="font-size:13px; font-weight:700;">Assigned Class: <b id="tWelcomeClassText" style="color:#7c3aed;">Class -</b></p>
       </div>
     </section>
 
@@ -165,7 +154,6 @@
     <section id="teacherTabAttend" class="tab-section">
       <div class="card">
         <div class="card-title">📅 Today's Class Attendance</div>
-        <button id="markHolidayTodayBtn" class="btn-primary btn-orange" style="margin-bottom:16px;">🎉 Mark Today as Holiday</button>
         <div class="table-container">
           <table>
             <thead><tr><th style="text-align:left; padding-left:10px;">Student Name</th><th>Present</th></tr></thead>
@@ -186,10 +174,6 @@
 
     <!-- PERFORMANCE TAB -->
     <section id="teacherTabPerform" class="tab-section">
-      <div class="card">
-        <div class="card-title">🏆 Class Leaderboard</div>
-        <div id="leaderboardListContainer">Loading Leaderboard...</div>
-      </div>
       <div class="card">
         <div class="card-title">⭐ Award / Deduct Points</div>
         <label>Select Student:</label>
@@ -242,23 +226,30 @@
     <div class="nav-item" onclick="switchTab('teacherTabTest', this)"><div style="font-size:18px;">📋</div>Test</div>
   </nav>
 
-  <!-- FIREBASE ENGINE LOGIC -->
+  <!-- DYNAMIC MODULE LOGIC -->
   <script type="module">
-    import { db, ref, get, child, set, update } from '../firebase-config.js';
+    const getBaseUrl = () => {
+      const pathSegments = window.location.pathname.split('/').filter(p => p.length > 0);
+      return (pathSegments.length > 0 && pathSegments[0] === 'testing') ? '/testing/' : '/';
+    };
 
-    // Auth & Class Setup
+    const baseUrl = getBaseUrl();
+    const configPath = `${baseUrl}firebase-config.js`;
+
+    const { db, ref, get, child, set, update } = await import(configPath);
+
     const role = localStorage.getItem("loggedRole");
     const assignedClass = localStorage.getItem("assignedClass") || "1";
     const loggedUser = localStorage.getItem("loggedUser");
 
     if (role !== "teacher") {
-      window.location.href = "../loginpage/";
+      window.location.href = `${baseUrl}loginpage/`;
     }
 
     document.getElementById("classBadgeContainer").innerText = `Class: ${assignedClass}`;
     document.getElementById("tWelcomeClassText").innerText = `Class ${assignedClass}`;
+    document.getElementById("tWelcomeTeacherName").innerText = loggedUser || "Teacher";
 
-    // UI Tab Navigation
     window.switchTab = function(tabId, el) {
       document.querySelectorAll(".tab-section").forEach(t => t.classList.remove("active"));
       document.getElementById(tabId).classList.add("active");
@@ -269,7 +260,6 @@
     window.openModal = function(id) { document.getElementById(id).classList.add("active"); };
     window.closeModal = function(id) { document.getElementById(id).classList.remove("active"); };
 
-    // Drawer Setup
     document.getElementById("hamburgerBtn").onclick = () => {
       document.getElementById("leftDrawer").classList.add("active");
       document.getElementById("drawerOverlay").classList.add("active");
@@ -286,19 +276,9 @@
 
     document.getElementById("logoutBtn").onclick = () => {
       localStorage.clear();
-      window.location.href = "../loginpage/";
+      window.location.href = `${baseUrl}loginpage/`;
     };
 
-    // Load Teacher Profile
-    async function loadTeacherInfo() {
-      const snap = await get(child(ref(db), `teachers/${loggedUser}`));
-      if(snap.exists()) {
-        document.getElementById("tWelcomeTeacherName").innerText = snap.val().name || loggedUser;
-      }
-    }
-    loadTeacherInfo();
-
-    // Load Class Students
     async function loadClassStudents() {
       const snap = await get(child(ref(db), "students"));
       const directory = document.getElementById("studentsTabDirectoryContainer");
@@ -315,7 +295,6 @@
         const students = Object.values(snap.val()).filter(s => String(s.class) === String(assignedClass));
 
         students.forEach(s => {
-          // Directory Card
           directory.innerHTML += `
             <div class="student-grid-card">
               <img src="${s.photo || 'https://via.placeholder.com/150'}" class="student-avatar">
@@ -326,7 +305,6 @@
             </div>
           `;
 
-          // Attendance Table Row
           attTable.innerHTML += `
             <tr>
               <td style="text-align:left; padding-left:10px; font-weight:700;">${s.name}</td>
@@ -334,7 +312,6 @@
             </tr>
           `;
 
-          // Dropdowns
           pSelect.innerHTML += `<option value="${s.admn}">${s.name}</option>`;
           tSelect.innerHTML += `<option value="${s.admn}">${s.name}</option>`;
         });
@@ -342,10 +319,9 @@
     }
     loadClassStudents();
 
-    // Save Registration
     document.getElementById("saveStudentBtn").onclick = async () => {
-      const name = document.getElementById("regName").value;
-      const phone = document.getElementById("regPhone").value;
+      const name = document.getElementById("regName").value.trim();
+      const phone = document.getElementById("regPhone").value.trim();
       const admn = "S" + Date.now().toString().slice(-4);
 
       if(!name || !phone) return alert("Fill mandatory fields");
@@ -353,12 +329,11 @@
       await set(ref(db, `students/${admn}`), { admn, name, class: assignedClass, phone, points: 0 });
       await set(ref(db, `users/${admn}`), { password: "MM", role: "student", admn, assignedClass });
 
-      alert(`Student Registered successfully! ID: ${admn}`);
+      alert(`Student Registered! ID: ${admn}`);
       closeModal("registerStudentModal");
       loadClassStudents();
     };
 
-    // Save Attendance
     document.getElementById("saveTodayAttendanceBtn").onclick = async () => {
       const today = new Date();
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -375,6 +350,34 @@
 
       await update(ref(db), updates);
       alert("Attendance saved successfully!");
+    };
+
+    document.getElementById("submitPerformPointsBtn").onclick = async () => {
+      const admn = document.getElementById("performStudentSelect").value;
+      const pts = parseInt(document.getElementById("performPointsInput").value);
+      if(!admn || isNaN(pts)) return alert("Select student and enter valid points");
+
+      const snap = await get(child(ref(db), `students/${admn}`));
+      if(snap.exists()) {
+        const currentPts = snap.val().points || 0;
+        await update(ref(db, `students/${admn}`), { points: currentPts + pts });
+        alert("Points updated successfully!");
+        loadClassStudents();
+      }
+    };
+
+    document.getElementById("saveTestDetailsBtn").onclick = async () => {
+      const admn = document.getElementById("testStudentSelect").value;
+      const name = document.getElementById("testNameInput").value.trim();
+      const total = document.getElementById("testTotalMarksInput").value.trim();
+      const obtained = document.getElementById("testObtainedMarksInput").value.trim();
+
+      if(!admn || !name || !total || !obtained) return alert("Fill all test details");
+
+      const testId = Date.now().toString();
+      const dateStr = new Date().toLocaleDateString('en-IN');
+      await set(ref(db, `tests/${admn}/${testId}`), { name, total, obtained, date: dateStr });
+      alert("Test marks recorded!");
     };
   </script>
 </body>
