@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>API Layer - Digital Classes</title>
+</head>
+<body>
+<script type="module">
+/* ====================================================================
+   DIGITAL CLASSES - SHARED API LAYER
+   Saare data operations yahan se honge
+   ==================================================================== */
+import {
+  db, ref, onValue, set, update, remove, child, get, push,
+  query, orderByChild, limitToLast,
+  ICON_PORTAL, ICON_BOOK, ICON_TEACHER, ICON_ANALYTICS
+} from "./firebase-config.js";
+
+/* ====================================================================
+   GLOBAL STATE
+   ==================================================================== */
+window.DC = window.DC || {};
+window.DC.state = {
+  currentRole: null,
+  assignedClass: null,
+  currentStudentAdmn: null,
+  currentUsername: null,
+  inMemoryStudentsData: {},
+  fullDbCache: {},
+  teacherLastRank: null
+};
+
+/* ====================================================================
+   FEES STRUCTURE (Naya)
+   ==================================================================== */
+window.DC.FEES = {
+  // Monthly classes
+  monthlyRates: {
+    "Nursery": 300,
+    "Jr. KG": 300,
+    "Sr. KG": 300,
+    "1": 300, "2": 300, "3": 300, "4": 300,
+    "5": 350, "6": 350, "7": 350,
+    "8": 500
+  },
+  // Yearly installment classes (total fees, 4 installments)
+  yearlyTotals: {
+    "9": 9000,
+    "10": 14000,
+    "11": 18000,
+    "12": 18000
+  },
+  isYearlyClass(cls) {
+    return ["9", "10", "11", "12"].includes(String(cls));
+  },
+  isMonthlyClass(cls) {
+    return !this.isYearlyClass(cls);
+  },
+  getMonthlyRate(cls) {
+    const c = String(cls).replace(/class\s*/i, "").trim();
+    return this.monthlyRates[c] || 300;
+  },
+  getYearlyTotal(cls) {
+    const c = String(cls).replace(/class\s*/i, "").trim();
+    return this.yearlyTotals[c] || 0;
+  }
+};
+
+/* ====================================================================
+   ALL CLASSES LIST
+   ==================================================================== */
+window.DC.ALL_CLASSES = ["Nursery", "Jr. KG", "Sr. KG", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+
+/* ====================================================================
+   TEACHER ASSIGNED CLASS OPTIONS (5 options)
+   ==================================================================== */
+window.DC.TEACHER_CLASS_OPTIONS = [
+  { value: "1-8", label: "Class 1 - 8" },
+  { value: "9",   label: "Class 9" },
+  { value: "10",  label: "Class 10" },
+  { value: "11",  label: "Class 11" },
+  { value: "12",  label: "Class 12" }
+];
+
+/* ====================================================================
+   HELPER FUNCTIONS
+   ==================================================================== */
+window.DC.cleanClassStr = function(str) {
+  if (!str) return "";
+  return String(str).replace(/class\s*/i, "").trim();
+};
+
+window.DC.getTodayFormattedDate = function() {
+  const t = new Date();
+  return `${String(t.getDate()).padStart(2,'0')}/${String(t.getMonth()+1).padStart(2,'0')}/${t.getFullYear()}`;
+};
+
+window.DC.getTodayKey = function() {
+  const t = new Date();
+  return `${t.getFullYear()}_${t.getMonth()+1}_${t.getDate()}`;
+};
+
+window.DC.getAutoMonthName = function() {
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  return months[new Date().getMonth()];
+};
+
+window.DC.getDaysInMonth = function(monthName) {
+  const m = ["January","February","March","April","May","June","July","August","September","October","November","December"].indexOf(monthName);
+  return new Date(new Date().getFullYear(), m+1, 0).getDate();
+};
+
+window.DC.readFileAsDataURL = function(file) {
+  return new Promise((resolve) => {
+    if (!file) return resolve(null);
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
+  });
+};
+
+window.DC.updateAppRoleIcon = function(role) {
+  const dynamicIcon = document.getElementById("dynamicAppIcon");
+  const appleIcon = document.getElementById("appleAppIcon");
+  let icon = ICON_PORTAL;
+  if (role === "student") icon = ICON_BOOK;
+  else if (role === "teacher") icon = ICON_TEACHER;
+  else if (role === "admin") icon = ICON_ANALYTICS;
+  if (dynamicIcon) dynamicIcon.href = icon;
+  if (appleIcon) appleIcon.href = icon;
+};
+
+/* ====================================================================
+   DB CACHE - REALTIME LISTENER
+   ==================================================================== */
+window.DC.initRealtimeCache = function() {
+  onValue(ref(db), (snap) => {
+    if (snap.exists()) {
+      window.DC.state.fullDbCache = snap.val();
+      if (window.DC.state.fullDbCache.students) {
+        window.DC.state.inMemoryStudentsData = window.DC.state.fullDbCache.students;
+        if (typeof window.DC.onCacheUpdate === 'function') {
+          window.DC.onCacheUpdate();
+        }
+      }
+    } else {
+      window.DC.state.fullDbCache = {};
+      window.DC.state.inMemoryStudentsData = {};
+    }
+  });
+};
+
+/* ====================================================================
+   SAFE DATA FETCH
+   ==================================================================== */
+window.DC.safeDataFetch = async function(path) {
+  try {
+    const snap = await get(child(ref(db), path));
+    return snap.exists() ? snap.val() : null;
+  } catch(err) {
+    console.warn("DB fetch error at path " + path + ":", err);
+    return null;
+  }
+};
+
+/* ====================================================================
+   GET LIVE STUDENTS (from cache)
+   ==================================================================== */
+window.DC.getLiveStudents = function() {
+  try {
+    const data = window.DC.state.inMemoryStudentsData;
+    if (!data) return [];
+    if (Array.isArray(data)) return data.filter(Boolean);
+    return Object.values(data).filter(item => item && typeof item === 'object');
+  } catch(e) {
+    return [];
+  }
+};
+
+/* ====================================================================
+   GET SINGLE STUDENT
+   ==================================================================== */
+window.DC.getStudentRecord = async function(admnId) {
+  if (!admnId) return null;
+  const students = window.DC.getLiveStudents();
+  const found = students.find(s => String(s.admn) === String(admnId));
+  if (found) return found;
+
+  const studentData = await window.DC.safeDataFetch(`students/${admnId}`);
+  if (studentData) {
+    window.DC.state.inMemoryStudentsData[admnId] = studentData;
+    return studentData;
+  }
+  return null;
+};
+
+/* ====================================================================
+   STUDENT CRUD
+   ==================================================================== */
+window.DC.getAllStudents = async function() {
+  const data = await window.DC.safeDataFetch("students");
+  return data ? Object.values(data).filter(Boolean) : [];
+};
+
+window.DC.getStudentsByClass = async function(cls) {
+  const students = await window.DC.getAllStudents();
+  const c = window.DC.cleanClassStr(cls);
+  return students.filter(s => window.DC.cleanClassStr(s.class) === c);
+};
+
+window.DC.createStudent = async function(studentObj, password) {
+  const admn = studentObj.admn;
+  const updates = {};
+  updates[`students/${admn}`] = studentObj;
+  updates[`users/${admn}`] = {
+    password: password || "MM",
+    role: "student",
+    admn: admn,
+    assignedClass: studentObj.class
+  };
+  await update(ref(db), updates);
+  return true;
+};
+
+window.DC.updateStudent = async function(admn, updatesObj) {
+  await update(ref(db, `students/${admn}`), updatesObj);
+  return true;
+};
+
+window.DC.deleteStudent = async function(admn) {
+  await remove(ref(db, `students/${admn}`));
+  await remove(ref(db, `users/${admn}`));
+  await remove(ref(db, `fees_entries/${admn}`));
+  await remove(ref(db, `fees_matrix/${admn}`));
+  await remove(ref(db, `tests/${admn}`));
+  await remove(ref(db, `attendance/${admn}`));
+  await remove(ref(db, `daily_claims/${admn}`));
+  await remove(ref(db, `student_test_attempts/${admn}`));
+  return true;
+};
+
+/* ====================================================================
+   TEACHER CRUD
+   ==================================================================== */
+window.DC.getAllTeachers = async function() {
+  const data = await window.DC.safeDataFetch("teachers");
+  return data ? Object.values(data).filter(Boolean) : [];
+};
+
+window.DC.getTeacher = async function(username) {
+  return await window.DC.safeDataFetch(`teachers/${username}`);
+};
+
+window.DC.createTeacher = async function(teacherObj, password) {
+  const updates = {};
+  updates[`teachers/${teacherObj.username}`] = teacherObj;
+  updates[`users/${teacherObj.username}`] = {
+    password: password,
+    role: "teacher",
+    assignedClass: teacherObj.assignedClass
+  };
+  await update(ref(db), updates);
+  return true;
+};
+
+window.DC.updateTeacher = async function(username, updatesObj) {
+  await update(ref(db, `teachers/${username}`), updatesObj);
+  return true;
+};
+
+window.DC.deleteTeacher = async function(username) {
+  await remove(ref(db, `teachers/${username}`));
+  await remove(ref(db, `users/${username}`));
+  return true;
+};
+
+/* ====================================================================
+   AUTH
+   ==================================================================== */
+window.DC.login = async function(username, password) {
+  const usersData = await window.DC.safeDataFetch("users");
+  const uData = usersData ? usersData[username] : null;
+  if (uData && uData.password === password) {
+    return { success: true, user: uData, username: username };
+  }
+  return { success: false };
+};
+
+/* ====================================================================
+   FEES OPERATIONS
+   ==================================================================== */
+window.DC.addFeesEntry = async function(admn, types, amount, mode) {
+  const dateStr = window.DC.getTodayFormattedDate();
+  const entryId = Date.now().toString();
+  const updates = {};
+
+  updates[`fees_entries/${admn}/${entryId}`] = {
+    id: entryId, admn, types, amount, mode, date: dateStr
+  };
+
+  types.forEach(t => {
+    updates[`fees_matrix/${admn}/${t}`] = { paid: true, date: dateStr, amount };
+  });
+
+  await update(ref(db), updates);
+  return entryId;
+};
+
+window.DC.deleteFeesEntry = async function(admn, entryId) {
+  await remove(ref(db, `fees_entries/${admn}/${entryId}`));
+  return true;
+};
+
+window.DC.getFeesMatrix = async function(admn) {
+  return await window.DC.safeDataFetch(`fees_matrix/${admn}`);
+};
+
+/* ====================================================================
+   ATTENDANCE OPERATIONS
+   ==================================================================== */
+window.DC.saveAttendance = async function(admn, month, dayNum, value) {
+  await set(ref(db, `attendance/${admn}/${month}/day_${dayNum}`), value);
+};
+
+window.DC.getAttendance = async function(admn, month) {
+  return await window.DC.safeDataFetch(`attendance/${admn}/${month}`);
+};
+
+/* ====================================================================
+   TEACHER MUSTER (IN/OUT TIME) - NAYA FEATURE
+   ==================================================================== */
+window.DC.saveTeacherInTime = async function(username, dateKey, timeStr) {
+  // dateKey format: YYYY_MM_DD
+  const path = `teacher_muster/${username}/${dateKey}`;
+  const existing = await window.DC.safeDataFetch(path);
+  if (existing && existing.inTime) {
+    return { success: false, message: "IN time already saved for today." };
+  }
+  await update(ref(db, path), { inTime: timeStr, date: window.DC.getTodayFormattedDate() });
+  return { success: true };
+};
+
+window.DC.saveTeacherOutTime = async function(username, dateKey, timeStr) {
+  const path = `teacher_muster/${username}/${dateKey}`;
+  const existing = await window.DC.safeDataFetch(path);
+  if (existing && existing.outTime) {
+    return { success: false, message: "OUT time already saved for today." };
+  }
+  await update(ref(db, path), { outTime: timeStr });
+  return { success: true };
+};
+
+window.DC.getTeacherMuster = async function(username, dateKey) {
+  return await window.DC.safeDataFetch(`teacher_muster/${username}/${dateKey}`);
+};
+
+window.DC.getTeacherMusterMonth = async function(monthKey) {
+  // monthKey: YYYY_MM
+  return await window.DC.safeDataFetch(`teacher_muster`);
+};
+
+/* ====================================================================
+   TESTS (Online + Offline)
+   ==================================================================== */
+window.DC.createOnlineTest = async function(classKey, testObj) {
+  await set(ref(db, `online_tests/${classKey}/${testObj.id}`), testObj);
+  return true;
+};
+
+window.DC.deleteOnlineTest = async function(classKey, testId) {
+  await remove(ref(db, `online_tests/${classKey}/${testId}`));
+  return true;
+};
+
+window.DC.getOnlineTests = async function(classKey) {
+  return await window.DC.safeDataFetch(`online_tests/${classKey}`);
+};
+
+window.DC.saveOfflineTestMarks = async function(admn, testObj) {
+  const testId = Date.now().toString();
+  await set(ref(db, `tests/${admn}/${testId}`), testObj);
+  return testId;
+};
+
+window.DC.getStudentTests = async function(admn) {
+  return await window.DC.safeDataFetch(`tests/${admn}`);
+};
+
+/* ====================================================================
+   PERFORMANCE POINTS
+   ==================================================================== */
+window.DC.updateStudentPoints = async function(admn, deltaPoints) {
+  const student = await window.DC.getStudentRecord(admn);
+  if (!student) return false;
+  const newPts = (student.points || 0) + deltaPoints;
+  await update(ref(db, `students/${admn}`), { points: newPts });
+  return newPts;
+};
+
+/* ====================================================================
+   DAILY REWARDS
+   ==================================================================== */
+window.DC.claimDailyPoints = async function(admn, todayKey, pointsToAward) {
+  const existing = await window.DC.safeDataFetch(`daily_claims/${admn}/${todayKey}`);
+  if (existing === true) return { success: false, message: "Already claimed" };
+
+  const student = await window.DC.getStudentRecord(admn);
+  const newPts = (student ? (student.points || 0) : 0) + pointsToAward;
+
+  const updates = {};
+  updates[`daily_claims/${admn}/${todayKey}`] = true;
+  updates[`students/${admn}/points`] = newPts;
+  await update(ref(db), updates);
+  return { success: true, newPts };
+};
+
+/* ====================================================================
+   NOTIFICATIONS ENGINE
+   ==================================================================== */
+window.DC.sendNotification = async function(targetType, targetId, notificationObj) {
+  // targetType: "admin" | "teacher" | "student" | "all_students" | "class_students"
+  // targetId: username / admn / classKey / null
+  const notifId = Date.now().toString() + Math.floor(Math.random()*1000);
+  const payload = {
+    id: notifId,
+    title: notificationObj.title,
+    body: notificationObj.body,
+    type: notificationObj.type || "general",
+    timestamp: Date.now(),
+    date: window.DC.getTodayFormattedDate(),
+    read: false
+  };
+
+  if (targetType === "admin") {
+    await set(ref(db, `notifications/admin/${notifId}`), payload);
+  } else if (targetType === "teacher") {
+    await set(ref(db, `notifications/teacher/${targetId}/${notifId}`), payload);
+  } else if (targetType === "student") {
+    await set(ref(db, `notifications/student/${targetId}/${notifId}`), payload);
+  } else if (targetType === "all_students") {
+    await set(ref(db, `notifications/broadcast_students/${notifId}`), payload);
+  } else if (targetType === "class_students") {
+    await set(ref(db, `notifications/class_students/${targetId}/${notifId}`), payload);
+  }
+  return notifId;
+};
+
+window.DC.getNotifications = async function(targetType, targetId) {
+  if (targetType === "admin") {
+    return await window.DC.safeDataFetch(`notifications/admin`);
+  } else if (targetType === "teacher") {
+    return await window.DC.safeDataFetch(`notifications/teacher/${targetId}`);
+  } else if (targetType === "student") {
+    return await window.DC.safeDataFetch(`notifications/student/${targetId}`);
+  }
+  return null;
+};
+
+window.DC.markNotificationRead = async function(targetType, targetId, notifId) {
+  let path = "";
+  if (targetType === "admin") path = `notifications/admin/${notifId}`;
+  else if (targetType === "teacher") path = `notifications/teacher/${targetId}/${notifId}`;
+  else if (targetType === "student") path = `notifications/student/${targetId}/${notifId}`;
+  if (path) await update(ref(db, path), { read: true });
+};
+
+/* ====================================================================
+   NOTIFICATION TRIGGERS (Helper functions jo dashboards call karenge)
+   ==================================================================== */
+
+// Teacher attendance submit kare → Admin ko notify
+window.DC.notifyAdminAttendanceSubmitted = async function(teacherName, teacherClass) {
+  await window.DC.sendNotification("admin", null, {
+    title: "📅 Attendance Submitted",
+    body: `Teacher ${teacherName} has submitted today's attendance for Class ${teacherClass}`,
+    type: "attendance"
+  });
+};
+
+// Teacher naya test add kare → Admin + Class students ko notify
+window.DC.notifyNewTest = async function(teacherName, teacherClass, testName) {
+  await window.DC.sendNotification("admin", null, {
+    title: "📝 New Test Added",
+    body: `Teacher ${teacherName} added new test "${testName}" for Class ${teacherClass}`,
+    type: "test"
+  });
+  await window.DC.sendNotification("class_students", teacherClass, {
+    title: "📝 New Test Available",
+    body: `New online test: "${testName}". Attempt before expiry!`,
+    type: "test"
+  });
+};
+
+// Student ka test record add ho → Student ko notify
+window.DC.notifyStudentTestRecord = async function(admn, testName, awardedPoints) {
+  await window.DC.sendNotification("student", admn, {
+    title: "⭐ Test Record Added",
+    body: `Your test record added: "${testName}". Points: ${awardedPoints >= 0 ? '+' : ''}${awardedPoints}`,
+    type: "test_record"
+  });
+};
+
+// Fees paid → Student ko notify
+window.DC.notifyFeesPaid = async function(admn, monthName) {
+  await window.DC.sendNotification("student", admn, {
+    title: "✅ Fees Paid",
+    body: `Fees paid for ${monthName}. Thank you!`,
+    type: "fees_paid"
+  });
+};
+
+// Month start → Student ko last month attendance sheet notification
+window.DC.notifyMonthStart = async function() {
+  const students = await window.DC.getAllStudents();
+  for (const st of students) {
+    await window.DC.sendNotification("student", st.admn, {
+      title: "📅 Attendance Sheet Ready",
+      body: `Last month's attendance sheet is now available in your dashboard.`,
+      type: "attendance_sheet"
+    });
+  }
+};
+
+// Fees reminder (Monthly - 6 days baad daily | Installment - weekly)
+window.DC.notifyFeesReminder = async function(admn, classStr, monthName) {
+  await window.DC.sendNotification("student", admn, {
+    title: "⚠️ Fees Pending",
+    body: `Please pay fees for ${monthName} (Class ${classStr}). Visit your dashboard to pay now.`,
+    type: "fees_reminder"
+  });
+};
+
+/* ====================================================================
+   NOTIFICATION BADGE COUNTER (Unread count)
+   ==================================================================== */
+window.DC.getUnreadCount = async function(targetType, targetId) {
+  const notifs = await window.DC.getNotifications(targetType, targetId);
+  if (!notifs) return 0;
+  return Object.values(notifs).filter(n => n && !n.read).length;
+};
+
+/* ====================================================================
+   CLASS LIST HELPERS
+   ==================================================================== */
+window.DC.populateClassDropdown = function(selectEl, includeAll = false) {
+  if (!selectEl) return;
+  selectEl.innerHTML = "";
+  if (includeAll) {
+    selectEl.innerHTML += `<option value="All">All Classes</option>`;
+  } else {
+    selectEl.innerHTML += `<option value="">-- Select Class --</option>`;
+  }
+  window.DC.ALL_CLASSES.forEach(c => {
+    selectEl.innerHTML += `<option value="${c}">${c.match(/^[0-9]+$/) ? "Class " + c : c}</option>`;
+  });
+};
+
+/* ====================================================================
+   INIT
+   ==================================================================== */
+window.DC.initRealtimeCache();
+console.log("✅ Digital Classes API Layer Loaded");
+
+export default window.DC;
+</script>
+</body>
+</html>
