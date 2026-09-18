@@ -120,6 +120,7 @@
     .modal-overlay.active { display: flex; }
     .modal-content { background: var(--card-bg); border-radius: 22px; width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto; padding: 20px; }
     .modal-header { display: flex; justify-content: space-between; font-weight: 800; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin-bottom: 12px; }
+    .paid-cell { color: #22c55e !important; font-weight: 800; background-color: rgba(34, 197, 94, 0.12); }
   </style>
 </head>
 <body>
@@ -147,9 +148,7 @@
       <span id="closeDrawerBtn" style="cursor:pointer;">✕</span>
     </div>
     <div class="drawer-body">
-      <div class="drawer-item" onclick="openModal('adminLeaderboardModal')">🏆 Class Leaderboards</div>
-      <div class="drawer-item" onclick="openModal('adminTeacherLeaderboardModal')">👩‍🏫 Teacher Leaderboard</div>
-      <div class="drawer-item" onclick="exportFullDatabaseJson()">📥 Export JSON Backup</div>
+      <div class="drawer-item" id="exportBackupBtn">📥 Export JSON Backup</div>
     </div>
   </div>
 
@@ -162,10 +161,42 @@
         <div class="card-title">Fees Overview Dashboard</div>
         <label>Select Standard:</label>
         <select id="homeStdSelect">
-          <option value="1">Class 1</option><option value="2">Class 2</option><option value="3">Class 3</option>
-          <option value="4">Class 4</option><option value="5">Class 5</option><option value="6">Class 6</option>
+          <option value="Nursery">Nursery</option>
+          <option value="Jr. KG">Jr. KG</option>
+          <option value="Sr. KG">Sr. KG</option>
+          <option value="1">Class 1</option>
+          <option value="2">Class 2</option>
+          <option value="3">Class 3</option>
+          <option value="4">Class 4</option>
+          <option value="5">Class 5</option>
+          <option value="6">Class 6</option>
+        </select>
+        <label>Select Month:</label>
+        <select id="homeMonthSelect">
+          <option value="June">June</option>
+          <option value="July">July</option>
+          <option value="August">August</option>
+          <option value="September" selected>September</option>
+          <option value="October">October</option>
+          <option value="November">November</option>
+          <option value="December">December</option>
+          <option value="January">January</option>
+          <option value="February">February</option>
+          <option value="March">March</option>
+          <option value="April">April</option>
+          <option value="May">May</option>
         </select>
         <button id="getStatsBtn" class="btn-primary">Get Stats</button>
+      </div>
+
+      <div class="card" id="homeStatsArea" style="display:none;">
+        <div class="card-title">Student Fee Status List</div>
+        <div class="table-container">
+          <table>
+            <thead><tr><th>Admn</th><th>Student Name</th><th>Status</th></tr></thead>
+            <tbody id="homeFeeListBody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -212,10 +243,46 @@
       <label>Full Name:</label>
       <input type="text" id="regName">
       <label>Select Class:</label>
-      <select id="regStd"><option value="1">Class 1</option><option value="2">Class 2</option></select>
+      <select id="regStd">
+        <option value="Nursery">Nursery</option>
+        <option value="Jr. KG">Jr. KG</option>
+        <option value="Sr. KG">Sr. KG</option>
+        <option value="1">Class 1</option>
+        <option value="2">Class 2</option>
+        <option value="3">Class 3</option>
+        <option value="4">Class 4</option>
+        <option value="5">Class 5</option>
+        <option value="6">Class 6</option>
+      </select>
       <label>Phone Number:</label>
       <input type="text" id="regPhone">
       <button id="saveStudentBtn" class="btn-primary btn-green">Register</button>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTER TEACHER -->
+  <div id="registerTeacherModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <span>👩‍🏫 Register Teacher</span>
+        <span onclick="closeModal('registerTeacherModal')" style="cursor:pointer;">✕</span>
+      </div>
+      <label>Teacher Name:</label>
+      <input type="text" id="tRegName">
+      <label>Username:</label>
+      <input type="text" id="tRegUser">
+      <label>Password:</label>
+      <input type="password" id="tRegPass">
+      <label>Assigned Class:</label>
+      <select id="tRegClass">
+        <option value="1">Class 1</option>
+        <option value="2">Class 2</option>
+        <option value="3">Class 3</option>
+        <option value="4">Class 4</option>
+        <option value="5">Class 5</option>
+        <option value="6">Class 6</option>
+      </select>
+      <button id="saveTeacherBtn" class="btn-primary btn-green">Create Teacher</button>
     </div>
   </div>
 
@@ -226,22 +293,31 @@
     <div class="nav-item" onclick="switchTab('adminTabEntry', this)"><div style="font-size:18px;">📝</div>Entry</div>
   </nav>
 
-  <!-- FIREBASE MODULE & LOGIC -->
+  <!-- DYNAMIC MODULE SCRIPT -->
   <script type="module">
-    import { db, ref, get, child, set, update } from '../firebase-config.js';
+    const getBaseUrl = () => {
+      const pathSegments = window.location.pathname.split('/').filter(p => p.length > 0);
+      return (pathSegments.length > 0 && pathSegments[0] === 'testing') ? '/testing/' : '/';
+    };
 
-    // Auth Check Redirect
+    const baseUrl = getBaseUrl();
+    const configPath = `${baseUrl}firebase-config.js`;
+    
+    // Dynamic import to prevent path resolution failures
+    const { db, ref, get, child, set, update } = await import(configPath);
+
+    // Strict Auth Check
     const role = localStorage.getItem("loggedRole");
     if (role !== "admin") {
-      window.location.href = "../loginpage/";
+      window.location.href = `${baseUrl}loginpage/`;
     }
 
-    // Navigation Switches
+    // UI Tab Navigation Handler
     window.switchTab = function(tabId, el) {
       document.querySelectorAll(".tab-section").forEach(t => t.classList.remove("active"));
       document.getElementById(tabId).classList.add("active");
       document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
-      if(el) el.classList.add("active");
+      if (el) el.classList.add("active");
     };
 
     window.openModal = function(id) { document.getElementById(id).classList.add("active"); };
@@ -264,41 +340,109 @@
 
     document.getElementById("logoutBtn").onclick = () => {
       localStorage.clear();
-      window.location.href = "../loginpage/";
+      window.location.href = `${baseUrl}loginpage/`;
     };
 
-    // Load Students Directory
+    // Load Registered Students
     async function loadDirectory() {
       const snap = await get(child(ref(db), "students"));
       const container = document.getElementById("adminStudentsDirectoryContainer");
       container.innerHTML = "";
 
-      if(snap.exists()) {
+      if (snap.exists()) {
         const students = snap.val();
         Object.values(students).forEach(s => {
-          container.innerHTML += `<div style="padding:10px; border-bottom:1px solid #ccc;"><b>${s.name}</b> (Class ${s.class}) - ID: ${s.admn}</div>`;
+          if (s && s.name) {
+            container.innerHTML += `<div style="padding:10px; border-bottom:1px solid #e2e8f0;"><b>${s.name}</b> (Class ${s.class}) - ID: ${s.admn}</div>`;
+          }
         });
       } else {
-        container.innerHTML = "No students found.";
+        container.innerHTML = "No students registered yet.";
       }
     }
     loadDirectory();
 
+    // Stats Logic
+    document.getElementById("getStatsBtn").onclick = async () => {
+      const std = document.getElementById("homeStdSelect").value;
+      const month = document.getElementById("homeMonthSelect").value;
+      const snap = await get(child(ref(db), "students"));
+      const matrixSnap = await get(child(ref(db), "fees_matrix"));
+      
+      const tbody = document.getElementById("homeFeeListBody");
+      tbody.innerHTML = "";
+
+      if (snap.exists()) {
+        const students = Object.values(snap.val()).filter(s => String(s.class) === String(std));
+        const matrix = matrixSnap.exists() ? matrixSnap.val() : {};
+
+        students.forEach(st => {
+          const isPaid = matrix[st.admn] && matrix[st.admn][month] && matrix[st.admn][month].paid;
+          tbody.innerHTML += `<tr><td>${st.admn}</td><td style="text-align:left; padding-left:8px;">${st.name}</td><td class="${isPaid ? 'paid-cell' : ''}">${isPaid ? 'PAID ✔' : 'UNPAID ❌'}</td></tr>`;
+        });
+        document.getElementById("homeStatsArea").style.display = "block";
+      }
+    };
+
     // Register Student Logic
     document.getElementById("saveStudentBtn").onclick = async () => {
-      const name = document.getElementById("regName").value;
+      const name = document.getElementById("regName").value.trim();
       const std = document.getElementById("regStd").value;
-      const phone = document.getElementById("regPhone").value;
+      const phone = document.getElementById("regPhone").value.trim();
       const admn = "S" + Date.now().toString().slice(-4);
 
-      if(!name || !phone) return alert("Fill details");
+      if (!name || !phone) return alert("Please fill all details!");
 
       await set(ref(db, `students/${admn}`), { admn, name, class: std, phone, points: 0 });
       await set(ref(db, `users/${admn}`), { password: "MM", role: "student", admn, assignedClass: std });
 
-      alert(`Student Registered! ID: ${admn}`);
+      alert(`Student Registered Successfully! ID: ${admn}`);
       closeModal("registerStudentModal");
       loadDirectory();
+    };
+
+    // Register Teacher Logic
+    document.getElementById("saveTeacherBtn").onclick = async () => {
+      const name = document.getElementById("tRegName").value.trim();
+      const user = document.getElementById("tRegUser").value.trim();
+      const pass = document.getElementById("tRegPass").value.trim();
+      const cls = document.getElementById("tRegClass").value;
+
+      if (!name || !user || !pass) return alert("Please fill all teacher details!");
+
+      await set(ref(db, `teachers/${user}`), { name, username: user, assignedClass: cls });
+      await set(ref(db, `users/${user}`), { password: pass, role: "teacher", assignedClass: cls });
+
+      alert("Teacher registered successfully!");
+      closeModal("registerTeacherModal");
+    };
+
+    // Submit Fees Entry
+    document.getElementById("submitFeeBtn").onclick = async () => {
+      const admn = document.getElementById("feeAdmnInput").value.trim();
+      const amount = document.getElementById("feeAmountInput").value.trim();
+      if (!admn || !amount) return alert("Please fill Student ID and Amount!");
+
+      const dateStr = new Date().toLocaleDateString('en-IN');
+      const entryId = Date.now().toString();
+
+      await set(ref(db, `fees_entries/${admn}/${entryId}`), { id: entryId, admn, amount, date: dateStr });
+      alert("Fees entry saved successfully!");
+      closeModal("feesEntryModal");
+    };
+
+    // Full Database Export
+    document.getElementById("exportBackupBtn").onclick = async () => {
+      const snap = await get(ref(db));
+      if (snap.exists()) {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(snap.val(), null, 2));
+        const dlAnchorElem = document.createElement('a');
+        dlAnchorElem.setAttribute("href", dataStr);
+        dlAnchorElem.setAttribute("download", `firebase_backup_${Date.now()}.json`);
+        document.body.appendChild(dlAnchorElem);
+        dlAnchorElem.click();
+        dlAnchorElem.remove();
+      }
     };
   </script>
 </body>
