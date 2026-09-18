@@ -123,20 +123,11 @@
   </div>
 
   <script type="module">
-    // Repository subfolder base URL path dynamic detection
-    const getBaseUrl = () => {
-      const pathSegments = window.location.pathname.split('/').filter(p => p.length > 0);
-      if (pathSegments.length > 0 && pathSegments[0] === 'testing') {
-        return '/testing/';
-      }
-      return '/';
-    };
+    // Direct Relative Path: loginpage folder se ek step bahar (root) me jaakar load karega
+    import { db, ref, get, child } from '../firebase-config.js';
 
-    const baseUrl = getBaseUrl();
-
-    // Register Service Worker from base path
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register(`${baseUrl}sw.js`).catch(err => console.log('SW registration failed:', err));
+      navigator.serviceWorker.register('../sw.js').catch(err => console.log('SW registration failed:', err));
     }
 
     const loginBtn = document.getElementById("loginBtn");
@@ -152,16 +143,11 @@
         return;
       }
 
-      // Spinner state
       loginBtn.disabled = true;
       loginBtn.innerHTML = `<span class="spinner"></span> Verifying...`;
       errorEl.style.display = "none";
 
       try {
-        // Dynamic import based on repository base URL
-        const firebaseConfigPath = `${baseUrl}firebase-config.js`;
-        const { db, ref, get, child } = await import(firebaseConfigPath);
-
         const snap = await get(child(ref(db), "users"));
         const usersData = snap.exists() ? snap.val() : {};
         const uData = usersData[u];
@@ -173,22 +159,22 @@
           if (uData.assignedClass) localStorage.setItem("assignedClass", uData.assignedClass);
           if (uData.admn) localStorage.setItem("studentAdmn", uData.admn);
 
-          // Repository compatible relative redirecting
+          // Relative folder redirect
           if (uData.role === "admin") {
-            window.location.href = `${baseUrl}admindashboard/`;
+            window.location.href = "../admindashboard/";
           } else if (uData.role === "teacher") {
-            window.location.href = `${baseUrl}teacherdashboard/`;
+            window.location.href = "../teacherdashboard/";
           } else if (uData.role === "student") {
-            window.location.href = `${baseUrl}studentboard/`;
+            window.location.href = "../studentboard/";
           }
         } else {
           errorEl.style.display = "block";
           errorEl.innerText = "Invalid credentials. Please try again.";
         }
       } catch (err) {
-        console.error("Login Error Details:", err);
+        console.error("Login Error:", err);
         errorEl.style.display = "block";
-        errorEl.innerText = "Connection Error: " + (err.message || "Failed to load config");
+        errorEl.innerText = "Connection Error: " + (err.message || "Failed to load database");
       } finally {
         loginBtn.disabled = false;
         loginBtn.innerHTML = "PORTAL LOGIN";
